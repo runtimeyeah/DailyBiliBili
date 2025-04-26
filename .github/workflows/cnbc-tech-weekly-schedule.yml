@@ -1,0 +1,36 @@
+name: CNBC Tech Weekly Schedule
+
+on:
+  workflow_dispatch:
+    inputs:
+      episode_number:
+        description: 'episode number'
+        required: true
+        default: '1'
+  schedule:
+    # 每周日北京时间 0:00（UTC 8:00）
+    - cron: '0 16 * * 0'
+
+jobs:
+  run-docker:
+    runs-on: ubuntu-latest
+    env:
+      default_vender: ${{ vars.default_vender }}
+      YOUTUBE_LINK: ${{ vars.YOUTUBE_LINK }}
+      episode_number: ${{ vars.episode_number }}
+    steps:
+      - name: Login to Tencent Cloud Container Registry
+        run: |
+          docker login ccr.ccs.tencentyun.com -u ${{ secrets.TENCENT_CLOUD_USERNAME }} -p ${{ secrets.TENCENT_CLOUD_PASSWORD }}
+      
+      - name: Run Docker container
+        run: |
+          lsmem
+          lscpu
+          set -x
+          if [ -n "$(echo ${{ github.event.inputs.episode_number }})" ]; then
+            export episode_number=${{ github.event.inputs.episode_number }}
+          fi
+          export YOUTUBE_LINK="https://www.youtube.com/playlist?list=PLDt0J62yU45tZEUloDABVG1HqTXUN8MPR"  
+          export publish_title_prefix="【CNBC Tech Weekly】`date '+%Y.%m.%d'`-"
+          docker run -e default_vender=$default_vender -e YOUTUBE_LINK="$YOUTUBE_LINK" -e episode_number=$episode_number -e publish_title_prefix="$publish_title_prefix" ccr.ccs.tencentyun.com/runtimeerr/aigc:youtube-video-maker 
