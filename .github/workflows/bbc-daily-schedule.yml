@@ -1,23 +1,20 @@
-name: CNBC Tech Weekly Schedule
+name: BBC Daily Schedule
 
 on:
   workflow_dispatch:
-    inputs:
-      episode_number:
-        description: 'episode number'
-        required: true
-        default: '1'
   schedule:
-    # 每周日北京时间 0:00（UTC 8:00）
-    - cron: '0 16 * * 0'
+    # 每天北京时间 18:00（UTC 0:00）
+    - cron: '0 10 * * *'
+
 
 jobs:
   run-docker:
     runs-on: ubuntu-latest
     env:
       default_vender: ${{ vars.default_vender }}
-      YOUTUBE_LINK: ${{ vars.YOUTUBE_LINK }}
+      YOUTUBE_LINK: "https://www.youtube.com/playlist?list=PLS3XGZxi7cBU_AtRadnVPJPRC6LHrexaF"
       episode_number: ${{ vars.episode_number }}
+
     steps:
       - name: Login to Tencent Cloud Container Registry
         run: |
@@ -38,12 +35,9 @@ jobs:
       
       - name: Run Docker container
         run: |
-          lsmem
           lscpu
-          set -x
-          if [ -n "$(echo ${{ github.event.inputs.episode_number }})" ]; then
-            export episode_number=${{ github.event.inputs.episode_number }}
-          fi
-          export YOUTUBE_LINK="https://www.youtube.com/playlist?list=PLDt0J62yU45tZEUloDABVG1HqTXUN8MPR"  
-          export publish_title_prefix="【CNBC Tech Weekly】`date '+%Y.%m.%d'`-"
-          docker run -e default_vender=$default_vender -e YOUTUBE_LINK="$YOUTUBE_LINK" -e episode_number=$episode_number -e publish_title_prefix="$publish_title_prefix" ccr.ccs.tencentyun.com/runtimeerr/aigc:youtube-video-maker 
+          lsmem
+          export episode_number=1
+          export default_vender=siliconflow
+          export publish_title_prefix="【BBC News】`date '+%Y.%m.%d'`-"
+          docker run -e default_vender=$default_vender -e YOUTUBE_LINK="$YOUTUBE_LINK" -e publish_title_prefix="$publish_title_prefix" -e episode_number=$episode_number ccr.ccs.tencentyun.com/runtimeerr/aigc:youtube-video-maker 

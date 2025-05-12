@@ -16,12 +16,26 @@ jobs:
     steps:
       - name: Login to Tencent Cloud Container Registry
         run: |
-          docker login ccr.ccs.tencentyun.com -u ${{ secrets.TENCENT_CLOUD_USERNAME }} -p ${{ secrets.TENCENT_CLOUD_PASSWORD }}
+          count=0
+          while true; do
+            docker login ccr.ccs.tencentyun.com -u ${{ secrets.TENCENT_CLOUD_USERNAME }} -p ${{ secrets.TENCENT_CLOUD_PASSWORD }}
+            docker pull ccr.ccs.tencentyun.com/runtimeerr/aigc:youtube-video-maker
+            if [ $? -eq 0 ]; then
+              break
+            fi
+            count=$((count+1))
+            if [ $count -gt 5 ]; then
+              echo "Failed to login to Tencent Cloud Container Registry after 5 attempts"
+              exit 1
+            fi
+            sleep 10
+          done
       
       - name: Run Docker container
         run: |
           lsmem
           lscpu
+          export default_vender=siliconflow
           export YOUTUBE_LINK="https://www.youtube.com/@TheDailyShow/videos"  
           export publish_title_prefix="【Daily Show】`date '+%Y.%m.%d'`-"
           docker run -e default_vender=$default_vender -e YOUTUBE_LINK="$YOUTUBE_LINK" -e episode_number=1 -e publish_title_prefix="$publish_title_prefix" ccr.ccs.tencentyun.com/runtimeerr/aigc:youtube-video-maker 

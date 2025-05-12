@@ -1,0 +1,51 @@
+name: CNN-Daily-Schedule
+run-name: ${{ gitea.actor }} Publish CNN On 00AM
+on:
+  schedule:
+    - cron: '7 0 * * *' # 每天北京时间11:50, UTC时3:50  
+jobs:
+  MakeVideo-12AM-Publish-On-12AM:
+    runs-on: ubuntu
+    steps:
+      - name: Check out repository code
+        uses: http://gitea:2080/actions/checkout@v4
+        with:
+          token: ${{ secrets.GITEA_TOKEN }} 
+      - name: Make CNN Video at 00AM and Publish to Bilibili @00AM
+        run: |
+          export default_vender=aliyun
+          export episode_number=1
+          export publish_title_prefix="【CNN News】`date '+%Y.%m.%d'`-"
+          export YOUTUBE_LINK="https://www.youtube.com/playlist?list=PL6XRrncXkMaVcAyYoXByXNtFJ1nxRg6J7"
+          docker run -e EXTRA_HTTP_PROXY=" --proxy http://172.17.0.1:7890" \
+           -e default_vender=$default_vender \
+           -e YOUTUBE_LINK="$YOUTUBE_LINK" \
+           -e publish_title_prefix="$publish_title_prefix" \
+           -e episode_number=1 \
+           --rm --privileged \
+           -e HTTP_PROXY="http://pan:panpanpan@47.242.214.169:3128" \
+           -e HTTPS_PROXY="http://pan:panpanpan@47.242.214.169:3128" \
+           ccr.ccs.tencentyun.com/runtimeerr/aigc:youtube-video-maker 
+
+
+      - name: send email
+        uses: http://gitea:2080/actions/action-send-mail@v4
+        with:
+          server_address: smtp.yeah.net
+          server_port: 465
+          secure: true
+          username: runtimeerr@yeah.net
+          password: ${{secrets.YEAH_NET_PASSWD}}
+          subject: CNN Video Maker Job Result
+          to: runtimeerr@yeah.net
+          from: runtimeerr@yeah.net
+          body:  Ubuntu test of ${{github.repository}} completed--- ${{job.status}}!
+          attachments: cover.jpg
+      - name: print job status
+        run: |
+          if [ "${{ job.status }}" = "success" ]; then
+            echo "This job is successful."
+          else
+            echo "This job is failed."
+            exit 1
+          fi
