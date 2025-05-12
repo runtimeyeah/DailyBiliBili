@@ -1,0 +1,16 @@
+name: CNN-Daily-Schedule
+run-name: ${{ gitea.actor }} Publish CNN On 00AM
+on:
+  schedule:
+    - cron: '28 2 * * *' # 每天北京时间11:50, UTC时3:50  
+jobs:
+  sync-obs-to-alipan:
+    runs-on: ubuntu-hk
+    steps:
+      - name: Check out repository code
+        uses: http://gitea:2080/actions/checkout@v4
+        with:
+          token: ${{ secrets.GITEA_TOKEN }} 
+      - name: Make CNN Video at 00AM and Publish to Bilibili @00AM
+        run: |
+          bash scripts/sync-obs-to-alipan.sh

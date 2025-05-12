@@ -1,18 +1,20 @@
-name: WSJ Daily Schedule
+name: BBC Daily Schedule
 
 on:
   workflow_dispatch:
   schedule:
-    # 每天北京时间 10:00（UTC 2:00）
-    - cron: '30 2 * * *'
+    # 每天北京时间 18:00（UTC 0:00）
+    - cron: '0 10 * * *'
+
 
 jobs:
   run-docker:
     runs-on: ubuntu-latest
     env:
       default_vender: ${{ vars.default_vender }}
-      YOUTUBE_LINK: ${{ vars.YOUTUBE_LINK }}
+      YOUTUBE_LINK: "https://www.youtube.com/playlist?list=PLS3XGZxi7cBU_AtRadnVPJPRC6LHrexaF"
       episode_number: ${{ vars.episode_number }}
+
     steps:
       - name: Login to Tencent Cloud Container Registry
         run: |
@@ -34,9 +36,9 @@ jobs:
       
       - name: Run Docker container
         run: |
-          lsmem
           lscpu
+          lsmem
+          export episode_number=1
           export default_vender=siliconflow
-          export YOUTUBE_LINK="https://www.youtube.com/@wsj/videos"
-          export publish_title_prefix="【华尔街日报】`date '+%Y.%m.%d'`-"
-          docker run -e default_vender=$default_vender -e YOUTUBE_LINK="$YOUTUBE_LINK" -e episode_number=1 -e publish_title_prefix="$publish_title_prefix" ccr.ccs.tencentyun.com/runtimeerr/aigc:youtube-video-maker 
+          export publish_title_prefix="【BBC News】`date '+%Y.%m.%d'`-"
+          docker run -e default_vender=$default_vender -e YOUTUBE_LINK="$YOUTUBE_LINK" -e publish_title_prefix="$publish_title_prefix" -e episode_number=$episode_number ccr.ccs.tencentyun.com/runtimeerr/aigc:youtube-video-maker 

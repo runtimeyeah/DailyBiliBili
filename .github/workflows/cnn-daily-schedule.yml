@@ -1,17 +1,17 @@
-name: WSJ Daily Schedule
+name: CNN Daily Schedule
 
 on:
   workflow_dispatch:
   schedule:
-    # 每天北京时间 10:00（UTC 2:00）
-    - cron: '30 2 * * *'
+    # 每天北京时间 15:00（UTC 7:00）
+    - cron: '0 7 * * *'
 
 jobs:
   run-docker:
     runs-on: ubuntu-latest
     env:
       default_vender: ${{ vars.default_vender }}
-      YOUTUBE_LINK: ${{ vars.YOUTUBE_LINK }}
+      YOUTUBE_LINK: "https://www.youtube.com/playlist?list=PL6XRrncXkMaWWFyjMtzWWSeOocFr-N_3s"
       episode_number: ${{ vars.episode_number }}
     steps:
       - name: Login to Tencent Cloud Container Registry
@@ -34,9 +34,7 @@ jobs:
       
       - name: Run Docker container
         run: |
-          lsmem
-          lscpu
-          export default_vender=siliconflow
-          export YOUTUBE_LINK="https://www.youtube.com/@wsj/videos"
-          export publish_title_prefix="【华尔街日报】`date '+%Y.%m.%d'`-"
-          docker run -e default_vender=$default_vender -e YOUTUBE_LINK="$YOUTUBE_LINK" -e episode_number=1 -e publish_title_prefix="$publish_title_prefix" ccr.ccs.tencentyun.com/runtimeerr/aigc:youtube-video-maker 
+          export publish_title_prefix="【CNN News】`date '+%Y.%m.%d'`-"
+          export use_video_frame_as_cover=1
+          export default_vender=aliyun
+          docker run -e default_vender=$default_vender -e YOUTUBE_LINK="$YOUTUBE_LINK" -e episode_number=$episode_number -e publish_title_prefix="$publish_title_prefix" -e use_video_frame_as_cover=$use_video_frame_as_cover ccr.ccs.tencentyun.com/runtimeerr/aigc:youtube-video-maker 

@@ -1,16 +1,15 @@
-name: WSJ Daily Schedule
+name: Fox News Daily Schedule
 
 on:
   workflow_dispatch:
   schedule:
-    # 每天北京时间 10:00（UTC 2:00）
-    - cron: '30 2 * * *'
+    # 每天北京时间 13:00（UTC 5:00）
+    - cron: '0 5 * * *'
 
 jobs:
   run-docker:
     runs-on: ubuntu-latest
     env:
-      default_vender: ${{ vars.default_vender }}
       YOUTUBE_LINK: ${{ vars.YOUTUBE_LINK }}
       episode_number: ${{ vars.episode_number }}
     steps:
@@ -36,7 +35,6 @@ jobs:
         run: |
           lsmem
           lscpu
-          export default_vender=siliconflow
-          export YOUTUBE_LINK="https://www.youtube.com/@wsj/videos"
-          export publish_title_prefix="【华尔街日报】`date '+%Y.%m.%d'`-"
-          docker run -e default_vender=$default_vender -e YOUTUBE_LINK="$YOUTUBE_LINK" -e episode_number=1 -e publish_title_prefix="$publish_title_prefix" ccr.ccs.tencentyun.com/runtimeerr/aigc:youtube-video-maker 
+          export YOUTUBE_LINK="https://www.youtube.com/playlist?list=PLlTLHnxSVuIz6_eSi1Tvt3C4eXEg5MHV3"  
+          export publish_title_prefix="【Fox News】`date '+%Y.%m.%d'`-"
+          docker run -e YOUTUBE_LINK="$YOUTUBE_LINK" -e episode_number=1 -e publish_title_prefix="$publish_title_prefix" ccr.ccs.tencentyun.com/runtimeerr/aigc:youtube-video-maker 

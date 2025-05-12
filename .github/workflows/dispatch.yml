@@ -2,18 +2,18 @@ name: Manual Trigger
 on:
   workflow_dispatch:
     inputs:
-      default_vender:
-        description: 'Openai供应商 aliyun/glm/siliconflow'
-        required: true
-        default: 'glm'
       YOUTUBE_LINK:
         description: 'youtube地址'
         required: false
-        default: 'https://www.youtube.com/@wsj/videos'
+        default: 'https://www.youtube.com/playlist?list=PL6XRrncXkMaWWFyjMtzWWSeOocFr-N_3s'
       episode_number:
         description: '集数'
         required: true
         default: 1
+      publish_title_prefix:
+        description: '发布标题前缀'
+        required: true
+        default: '【科技演讲】'
 
 jobs:
   run-docker:
@@ -21,17 +21,30 @@ jobs:
     steps:
       - name: Login to Tencent Cloud Container Registry
         run: |
-          docker login ccr.ccs.tencentyun.com -u ${{ secrets.TENCENT_CLOUD_USERNAME }} -p ${{ secrets.TENCENT_CLOUD_PASSWORD }}
+          set +e
+          count=0
+          while true; do
+            docker login ccr.ccs.tencentyun.com -u ${{ secrets.TENCENT_CLOUD_USERNAME }} -p ${{ secrets.TENCENT_CLOUD_PASSWORD }}
+            docker pull ccr.ccs.tencentyun.com/runtimeerr/aigc:youtube-video-maker
+            if [ $? -eq 0 ]; then
+              break
+            fi
+            count=$((count+1))
+            if [ $count -gt 5 ]; then
+              echo "Failed to login to Tencent Cloud Container Registry after 5 attempts"
+              exit 1
+            fi
+            sleep 10
+          done
       
       - name: Run Video Cut
         run: |
           lscpu
           lsmem
-          echo "openai供应商: ${{ github.event.inputs.default_vender }}"
           echo "youtube地址: ${{ github.event.inputs.YOUTUBE_LINK }}"
           echo "episode_number: ${{ github.event.inputs.episode_number }}"
-          export default_vender=${{ github.event.inputs.default_vender }}
+          echo "publish_title_prefix: ${{ github.event.inputs.publish_title_prefix }}"
           export YOUTUBE_LINK="${{ github.event.inputs.YOUTUBE_LINK }}"
           export episode_number=${{ github.event.inputs.episode_number }}
-
-          docker run -e default_vender=$default_vender -e YOUTUBE_LINK="$YOUTUBE_LINK" -e episode_number=$episode_number ccr.ccs.tencentyun.com/runtimeerr/aigc:youtube-video-maker 
+          export publish_title_prefix=${{ github.event.inputs.publish_title_prefix }}
+          docker run -e YOUTUBE_LINK="$YOUTUBE_LINK" -e episode_number=$episode_number -e publish_title_prefix=$publish_title_prefix ccr.ccs.tencentyun.com/runtimeerr/aigc:youtube-video-maker 
